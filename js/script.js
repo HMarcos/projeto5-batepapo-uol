@@ -15,19 +15,20 @@ let intervalObterMensagens = null;
 const ulListaDesMensagens = document.querySelector(".mensagens");
 
 /* --- Conjunto de Funções --- */
+
 function entrarNaSala() {
 
     nomeUsuario = prompt("Informe o seu nome: ");
 
-    const usuario = { name: nomeUsuario };
+    if (nomeUsuario !== null && nomeUsuario !== "") {
+        const usuario = { name: nomeUsuario };
 
-    // Solicitando a entrada na sala ao servidor
-    const promessaDeEntrada = axios.post(LINK_API_PARTICIPANTES, usuario);
-    promessaDeEntrada.then(gerenciarEntradaComSucesso);
-    promessaDeEntrada.catch(genrenciarEntradaSemSucesso);
-
+        // Solicitando a entrada na sala ao servidor
+        const promessaDeEntrada = axios.post(LINK_API_PARTICIPANTES, usuario);
+        promessaDeEntrada.then(gerenciarEntradaComSucesso);
+        promessaDeEntrada.catch(genrenciarEntradaSemSucesso);
+    }
 }
-
 
 function gerenciarEntradaComSucesso() {
 
@@ -35,6 +36,8 @@ function gerenciarEntradaComSucesso() {
     intervalConexaoUsuario = setInterval(manterConexaoDoUsuario, INTERVALO_MANTER_CONEXAO);
 
     // Buscar Mensagens
+    buscarMensagens();
+    intervalObterMensagens = setInterval(buscarMensagens, INTERVALO_OBTER_MENSAGENS);
 }
 
 
@@ -61,45 +64,87 @@ function manterConexaoDoUsuario() {
 function buscarMensagens() {
 
     const promessaBuscarMensagens = axios.get(LINK_API_MENSAGENS);
-    promessaBuscarMensagens.then(genrenciarBuscaDasMensagemComSuceeso);
+    promessaBuscarMensagens.then(genrenciarBuscaDasMensagemComSucesso);
 }
 
-function genrenciarBuscaDasMensagemComSuceeso(response) {
+function genrenciarBuscaDasMensagemComSucesso(response) {
     listaDeMensagens = response.data;
 
     ulListaDesMensagens.innerHTML = "";
 
     listaDeMensagens.forEach(renderizarMensagem);
+
+    scrollarAutomaticamente();
 }
 
 function renderizarMensagem(mensagem) {
 
     if (mensagem.type === "status") {
         ulListaDesMensagens.innerHTML += `
-        <li class="mensagem-de-estado">
-            <p> <span class="horario">${mensagem.time} </span> <b>${mensagem.from}</b> ${mensagem.text}
+        <li class="mensagem-de-estado" data-identifier="message">
+            <p> <span class="horario">(${mensagem.time}) </span> <b>${mensagem.from}</b> ${mensagem.text}
             </p>
         </li>
         `
     }
+
     else if (mensagem.type === "message") {
         ulListaDesMensagens.innerHTML += `
-        <li class="mensagem-normal">
-            <p> <span class="horario">${mensagem.time}  </span> <b>${mensagem.from}</b> 
+        <li class="mensagem-normal" data-identifier="message">
+            <p> <span class="horario">(${mensagem.time}) </span> <b>${mensagem.from}</b> 
             para <b>${mensagem.to}:</b> ${mensagem.text}
             </p>
         </li>
         `
     }
-    else if (mensagem.type == "private_message") {
+
+    else if (mensagem.type == "private_message"
+        && ehMensagemDoUsuario()) {
+
         ulListaDesMensagens.innerHTML += `
-        <li class="mensagem-reservada">
-            <p> <span class="horario">${mensagem.time}  </span> <b>${mensagem.from}</b> 
+        <li class="mensagem-reservada" data-identifier="message">
+            <p> <span class="horario">(${mensagem.time}) </span> <b>${mensagem.from}</b> 
             para <b>${mensagem.to}:</b> ${mensagem.text}
             </p>
         </li>
         `
     }
 }
+
+function ehMensagemDoUsuario(mensagem) {
+    const usuarioEhORemetente = mensagem.from === nomeUsuario;
+    const usuarioEhODestinario = mensagem.to === nomeUsuario;
+
+    return usuarioEhORemetente || usuarioEhODestinario;
+}
+
+function scrollarAutomaticamente() {
+    const ultimoLi = document.querySelector(".mensagens li:last-child");
+    ultimoLi.scrollIntoView();
+
+}
+
+function enviarMensagem() {
+
+    let textoMensagem = document.querySelector(".input__mensagem").value;
+
+    if (textoMensagem !== "") {
+        const mensagem = {
+            from: nomeUsuario,
+            to: "Todos",
+            text: textoMensagem,
+            type: "message"
+        }
+
+        const promessaEnviarMensagem = axios.post(LINK_API_MENSAGENS, mensagem);
+        promessaEnviarMensagem.then(buscarMensagens);
+        promessaEnviarMensagem.catch(atualizarPagina);
+
+    }
+}
+
+function atualizarPagina() {
+    window.location.reload();
+}
 /* --- Chamada das Funções ao Iniciar a Aplicação --- */
-//entrarNaSala();
+entrarNaSala();
