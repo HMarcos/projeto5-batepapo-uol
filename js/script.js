@@ -18,24 +18,44 @@ const ulListaDesMensagens = document.querySelector(".mensagens");
 
 function entrarNaSala() {
 
-    nomeUsuario = prompt("Informe o seu nome: ");
+    nomeUsuario = document.querySelector(".input__nome-usuario").value;
 
-    if (nomeUsuario !== null && nomeUsuario !== "") {
-        const usuario = { name: nomeUsuario };
+    if (nomeUsuario !== "") {
 
-        // Solicitando a entrada na sala ao servidor
-        const promessaDeEntrada = axios.post(LINK_API_PARTICIPANTES, usuario);
-        promessaDeEntrada.then(gerenciarEntradaComSucesso);
-        promessaDeEntrada.catch(genrenciarEntradaSemSucesso);
+        alterarTelaDeEntrada();
+        solicitarEntradaAoServidor();
     }
+}
+
+function alterarTelaDeEntrada() {
+
+    const divInformacoesEntrada = document.querySelector(".informacoes-de-entrada");
+    const divLoading = document.querySelector(".entrando");
+
+    divInformacoesEntrada.classList.toggle("escondido");
+    divLoading.classList.toggle("escondido");
+}
+
+
+function mostrarInterfacePrincipal() {
+    const telaDeEntrada = document.querySelector(".tela-de-entrada");
+    telaDeEntrada.classList.add("escondido");
+}
+
+
+function solicitarEntradaAoServidor() {
+    const usuario = { name: nomeUsuario };
+    const promessaDeEntrada = axios.post(LINK_API_PARTICIPANTES, usuario);
+    promessaDeEntrada.then(gerenciarEntradaComSucesso);
+    promessaDeEntrada.catch(genrenciarEntradaSemSucesso);
 }
 
 function gerenciarEntradaComSucesso() {
 
-    // Mantendo a conexão do usuário
+    mostrarInterfacePrincipal();
+
     intervalConexaoUsuario = setInterval(manterConexaoDoUsuario, INTERVALO_MANTER_CONEXAO);
 
-    // Buscar Mensagens
     buscarMensagens();
     intervalObterMensagens = setInterval(buscarMensagens, INTERVALO_OBTER_MENSAGENS);
 }
@@ -44,9 +64,9 @@ function gerenciarEntradaComSucesso() {
 function genrenciarEntradaSemSucesso() {
     alert(`Entrada não autorizada!!
     O Nome de usuario ${nomeUsuario} já está em uso.
-    Siga em frente e tente novamente.`);
+    Tente novamente.`);
 
-    entrarNaSala();
+    alterarTelaDeEntrada();
 }
 
 
@@ -99,7 +119,7 @@ function renderizarMensagem(mensagem) {
     }
 
     else if (mensagem.type == "private_message"
-        && ehMensagemDoUsuario()) {
+        && ehMensagemDoUsuario(mensagem)) {
 
         ulListaDesMensagens.innerHTML += `
         <li class="mensagem-reservada" data-identifier="message">
@@ -146,5 +166,4 @@ function enviarMensagem() {
 function atualizarPagina() {
     window.location.reload();
 }
-/* --- Chamada das Funções ao Iniciar a Aplicação --- */
-entrarNaSala();
+
