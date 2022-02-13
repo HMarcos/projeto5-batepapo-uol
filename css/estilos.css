@@ -16,6 +16,13 @@ body {
 
 }
 
+button {
+    margin: 0px;
+    border: 0px;
+    border-image-width: 0;
+    background-color: var(--cor-bg-footer);
+}
+
 /* ---- Header ---- */
 header{
     background: var(--cor-bg-header);
@@ -61,7 +68,6 @@ main ul li {
     font-size: 14px;
     line-height: 16px;
 
-    background-color: aqua;
     padding: 12px 0px;
 
     width: 100vw;
@@ -70,6 +76,8 @@ main ul li {
     flex-wrap: wrap;
 
     margin-bottom: 4px;
+
+    border-radius: 2px;
 
 }
 
