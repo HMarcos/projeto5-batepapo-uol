@@ -58,6 +58,8 @@ function gerenciarEntradaComSucesso() {
 
     buscarMensagens();
     intervalObterMensagens = setInterval(buscarMensagens, INTERVALO_OBTER_MENSAGENS);
+
+    configurarBotaoEnviarMensagens();
 }
 
 
@@ -75,10 +77,9 @@ function manterConexaoDoUsuario() {
     const usuario = { name: nomeUsuario };
 
     // Informando ao servidor para manter a conexão
-    const promessaManterConexao = axios.post(LINK_API_MANTER_CONEXAO, usuario);
+    axios.post(LINK_API_MANTER_CONEXAO, usuario);
 
-    /*promessaManterConexao.then(function () { console.log("Conexão Mantida")});
-    promessaManterConexao.catch(function () { console.log("Conexão Não Mantida")})*/
+
 }
 
 function buscarMensagens() {
@@ -146,7 +147,8 @@ function scrollarAutomaticamente() {
 
 function enviarMensagem() {
 
-    let textoMensagem = document.querySelector(".input__mensagem").value;
+    const inputMensagem = document.querySelector(".input__mensagem"); 
+    let textoMensagem = inputMensagem.value;
 
     if (textoMensagem !== "") {
         const mensagem = {
@@ -160,10 +162,23 @@ function enviarMensagem() {
         promessaEnviarMensagem.then(buscarMensagens);
         promessaEnviarMensagem.catch(atualizarPagina);
 
+        inputMensagem.value = "";
     }
 }
+
+
+/* Associando a Tecla Enter ao botão que envia as mensagens */
+function configurarBotaoEnviarMensagens() {
+    window.addEventListener('keydown', (event) => {
+
+        if (event.key === "Enter")
+            enviarMensagem();
+    })
+}
+
 
 function atualizarPagina() {
     window.location.reload();
 }
+
 
